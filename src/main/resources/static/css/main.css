@@ -18,7 +18,8 @@ body {
 
 /* --- Tweaks mobile (smartphone portrait) --- */
 .navbar .btn {
-    white-space: nowrap;
+    margin-left: 10px;
+    /*white-space: nowrap; */
 }
 
 .navbar-brand {
