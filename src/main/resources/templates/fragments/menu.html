@@ -7,7 +7,10 @@
         <div class="container-fluid align-items-center">
             <a class="navbar-brand mb-0 h1" th:href="@{/}">TDA</a>
             <a class="btn btn-outline-light btn-sm" sec:authorize="hasRole('REDACTEUR')" th:href="@{/edit}">Réunion</a>
-            <a class="btn btn-outline-light btn-sm" sec:authorize="hasRole('REDACTEUR')" th:href="@{/partie}">Partie</a>
+            <a class="btn btn-outline-light btn-sm"
+               th:if="${currentMessage.level == 2}"
+               sec:authorize="hasRole('REDACTEUR')"
+               th:href="@{/partie}">Partie</a>
             <div class="ms-auto d-flex">
                 <a class="btn btn-outline-light btn-sm" sec:authorize="!isAuthenticated()" th:href="@{/login}">Login</a>
                 <form class="d-inline ms-2 m-0 p-0" method="post" sec:authorize="isAuthenticated()" th:action="@{/logout}">
