@@ -5,16 +5,16 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "127.0.0.1:8080:8080"
+      - "127.0.0.1:9001:9001"
     env_file:
       - .env
     environment:
       TZ: Europe/Paris
       SPRING_PROFILES_ACTIVE: prod
-      APP_ALLOWED_ORIGINS: ${APP_ALLOWED_ORIGINS:-https://tda.tartempion.fr}
+      APP_ALLOWED_ORIGINS: ${APP_ALLOWED_ORIGINS:-https://tda.mr486.com}
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:9001/actuator/health || exit 1"]
       interval: 15s
       timeout: 3s
       retries: 5
