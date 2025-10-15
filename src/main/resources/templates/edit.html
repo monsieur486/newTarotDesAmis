@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <title th:text="${title}">Éditer - TDA</title>
+    <link crossorigin="anonymous" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/main.css}"/>
+</head>
+<body>
+<nav class="navbar navbar-dark bg-dark fixed-top">
+    <div class="container-fluid align-items-center">
+        <a class="navbar-brand mb-0 h1" th:href="@{/}">TDA</a>
+        <a class="btn btn-outline-secondary btn-sm" sec:authorize="hasRole('REDACTEUR')" th:href="@{/edit}">Éditer</a>
+        <div class="ms-auto d-flex">
+            <a class="btn btn-outline-light btn-sm" sec:authorize="!isAuthenticated()" th:href="@{/login}">Login</a>
+            <form class="d-inline ms-2 m-0 p-0" method="post" sec:authorize="isAuthenticated()" th:action="@{/logout}">
+                <input th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"
+                       type="hidden"/>
+                <button class="btn btn-outline-warning btn-sm" type="submit">Logout</button>
+            </form>
+        </div>
+    </div>
+</nav>
+
+<main class="container pt-4" style="padding-top: 4rem; padding-bottom: 3.5rem;">
+    <div class="mb-3">
+        <h4>Gestion réunion</h4>
+    </div>
+
+    <!-- level = 0 : erreur -->
+    <div class="alert alert-danger" th:if="${currentMessage.level == 0}">
+        Une erreur est survenue. Veuillez corriger puis réessayer.
+    </div>
+
+    <!-- level = 1 : création réunion (sélection 4..6 amis) -->
+    <div th:if="${currentMessage.level == 1}">
+        <div class="alert alert-warning" th:if="${formError}" th:text="${formError}"></div>
+        <div class="alert alert-warning d-none" id="client-select-error">Veuillez sélectionner entre 4 et 6 amis.</div>
+        <form class="row g-3" id="form-create" method="post" th:action="@{/edit/create}">
+            <input th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
+
+            <div class="col-12">
+                <div class="form-text mb-2">Choisissez entre 4 et 6 amis pour créer la réunion.</div>
+                <div class="list-group" id="amis-list">
+                    <label class="list-group-item d-flex align-items-center" th:each="a : ${amis}">
+                        <input class="form-check-input me-2" name="amis" th:attr="data-name=${a.nom}"
+                               th:checked="${selectedIds != null and selectedIds.contains(a.id)}" th:value="${a.id}"
+                               type="checkbox">
+                        <span th:text="${a.nom}">ami</span>
+                        <span class="badge bg-secondary ms-auto" th:if="${a.isGuest}" title="Invité">Invité</span>
+                    </label>
+                </div>
+            </div>
+            <div class="col-12">
+                <button class="btn btn-primary w-100" id="btn-open-create" type="button">Créer réunion</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- level = 2 : partie en cours => bouton terminer -->
+    <div th:if="${currentMessage.level == 2}">
+        <form class="mt-2" id="form-finish" method="post" th:action="@{/edit/finish}">
+            <input th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
+            <button class="btn btn-warning w-100" id="btn-open-finish" type="button">Terminer la réunion</button>
+        </form>
+    </div>
+
+    <!-- level = 3 : partie terminée => bouton reset -->
+    <div th:if="${currentMessage.level == 3}">
+        <form class="mt-2" id="form-reset" method="post" th:action="@{/edit/reset}">
+            <input th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
+            <button class="btn btn-secondary w-100" id="btn-open-reset" type="button">Remise à zéro</button>
+        </form>
+    </div>
+</main>
+
+<!-- Modale confirmation création -->
+<div aria-hidden="true" class="modal fade" id="modalCreate" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmer la création de la réunion</h5>
+                <button aria-label="Fermer" class="btn-close" data-bs-dismiss="modal" type="button"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-2 small text-muted">Participants sélectionnés:</div>
+                <div class="fw-semibold" id="selected-names">(aucun)</div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline-secondary" data-bs-dismiss="modal" type="button">Annuler</button>
+                <button class="btn btn-primary" id="btn-confirm-create" type="button">Valider</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modale confirmation terminer -->
+<div aria-hidden="true" class="modal fade" id="modalFinish" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmation</h5>
+                <button aria-label="Fermer" class="btn-close" data-bs-dismiss="modal" type="button"></button>
+            </div>
+            <div class="modal-body">
+                Êtes-vous sûr(e) de terminer la réunion ?
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline-secondary" data-bs-dismiss="modal" type="button">Non</button>
+                <button class="btn btn-warning" id="btn-confirm-finish" type="button">Oui</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modale confirmation reset -->
+<div aria-hidden="true" class="modal fade" id="modalReset" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmation</h5>
+                <button aria-label="Fermer" class="btn-close" data-bs-dismiss="modal" type="button"></button>
+            </div>
+            <div class="modal-body">
+                Êtes-vous sûr(e) de remettre à zéro ?
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline-secondary" data-bs-dismiss="modal" type="button">Non</button>
+                <button class="btn btn-secondary" id="btn-confirm-reset" type="button">Oui</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer class="footer fixed-bottom bg-dark text-light py-2 small">
+    <div class="container-fluid d-flex justify-content-between align-items-center">
+        <div class="text-start text-truncate" id="footer-left"></div>
+        <div class="text-end" id="footer-right">
+            <span class="ms-2" id="ws-icon" title="État WS">⛓️‍💥</span>
+        </div>
+    </div>
+</footer>
+
+<script crossorigin="anonymous"
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const formCreate = document.getElementById('form-create');
+        const btnOpenCreate = document.getElementById('btn-open-create');
+        const clientError = document.getElementById('client-select-error');
+        const amisList = document.getElementById('amis-list');
+        const selectedNamesEl = document.getElementById('selected-names');
+        const modalCreate = new bootstrap.Modal(document.getElementById('modalCreate'));
+
+        if (btnOpenCreate) {
+            btnOpenCreate.addEventListener('click', function () {
+                const checked = amisList ? Array.from(amisList.querySelectorAll('input[type="checkbox"]:checked')) : [];
+                const count = checked.length;
+                if (clientError) clientError.classList.add('d-none');
+                if (count < 4 || count > 6) {
+                    if (clientError) clientError.classList.remove('d-none');
+                    return;
+                }
+                const names = checked.map(cb => {
+                    const label = cb.closest('label');
+                    const span = label ? label.querySelector('span') : null;
+                    return span ? span.textContent.trim() : (cb.getAttribute('data-name') || '');
+                }).filter(Boolean);
+                selectedNamesEl.textContent = names.join(', ');
+                modalCreate.show();
+            });
+        }
+
+        const btnConfirmCreate = document.getElementById('btn-confirm-create');
+        if (btnConfirmCreate && formCreate) {
+            btnConfirmCreate.addEventListener('click', function () {
+                formCreate.submit();
+            });
+        }
+
+        // Terminer
+        const formFinish = document.getElementById('form-finish');
+        const btnOpenFinish = document.getElementById('btn-open-finish');
+        const modalFinish = document.getElementById('modalFinish') ? new bootstrap.Modal(document.getElementById('modalFinish')) : null;
+        if (btnOpenFinish && modalFinish) {
+            btnOpenFinish.addEventListener('click', function () {
+                modalFinish.show();
+            });
+        }
+        const btnConfirmFinish = document.getElementById('btn-confirm-finish');
+        if (btnConfirmFinish && formFinish) {
+            btnConfirmFinish.addEventListener('click', function () {
+                formFinish.submit();
+            });
+        }
+
+        // Reset
+        const formReset = document.getElementById('form-reset');
+        const btnOpenReset = document.getElementById('btn-open-reset');
+        const modalReset = document.getElementById('modalReset') ? new bootstrap.Modal(document.getElementById('modalReset')) : null;
+        if (btnOpenReset && modalReset) {
+            btnOpenReset.addEventListener('click', function () {
+                modalReset.show();
+            });
+        }
+        const btnConfirmReset = document.getElementById('btn-confirm-reset');
+        if (btnConfirmReset && formReset) {
+            btnConfirmReset.addEventListener('click', function () {
+                formReset.submit();
+            });
+        }
+    });
+</script>
+</body>
+</html>

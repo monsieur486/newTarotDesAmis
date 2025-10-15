@@ -1,0 +1,20 @@
+services:
+  tda:
+    container_name: tda-ws-http
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:8080:8080"
+    env_file:
+      - .env
+    environment:
+      TZ: Europe/Paris
+      SPRING_PROFILES_ACTIVE: prod
+      APP_ALLOWED_ORIGINS: ${APP_ALLOWED_ORIGINS:-https://tda.tartempion.fr}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 3s
+      retries: 5

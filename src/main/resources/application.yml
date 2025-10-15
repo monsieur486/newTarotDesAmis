@@ -1,0 +1,19 @@
+server:
+  port: 8080
+spring:
+  thymeleaf:
+    cache: true
+app:
+  allowed-origins: "*"   # dev/IDE by default
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+logging:
+  level:
+    org.springframework.messaging: INFO
+    org.springframework.web.socket: INFO

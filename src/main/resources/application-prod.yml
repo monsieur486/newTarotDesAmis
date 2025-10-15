@@ -1,0 +1,21 @@
+# Production profile
+server:
+  port: 8080
+  forward-headers-strategy: native
+  servlet:
+    session:
+      cookie:
+        secure: true   # HTTPS only cookie
+spring:
+  thymeleaf:
+    cache: true
+app:
+  allowed-origins: "https://tda.tartempion.fr"
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never

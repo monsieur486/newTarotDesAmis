@@ -1,0 +1,51 @@
+:root {
+    --tda-navbar-h: 56px;
+    --tda-footer-h: 44px;
+}
+
+body {
+    padding-top: var(--tda-navbar-h);
+    padding-bottom: var(--tda-footer-h);
+}
+
+.form-control {
+    font-size: 1rem;
+}
+
+.nav-tabs .nav-link {
+    padding: .4rem .75rem;
+}
+
+/* --- Tweaks mobile (smartphone portrait) --- */
+.navbar .btn {
+    white-space: nowrap;
+}
+
+.navbar-brand {
+    white-space: nowrap;
+}
+
+@media (max-width: 576px) {
+    .navbar-brand {
+        font-size: 1rem;
+        margin-right: .5rem;
+    }
+
+    .navbar .btn-sm {
+        padding: .25rem .5rem;
+        font-size: .875rem;
+    }
+
+    main.container, main.container-fluid {
+        padding-left: .75rem !important;
+        padding-right: .75rem !important;
+    }
+
+    .btn {
+        font-size: .95rem;
+    }
+
+    .form-control {
+        font-size: .95rem;
+    }
+}
