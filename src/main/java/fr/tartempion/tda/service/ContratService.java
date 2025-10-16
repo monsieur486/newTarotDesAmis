@@ -16,7 +16,7 @@ public class ContratService {
   @PostConstruct
   void init() {
     contrats.clear();
-    Contrat contrat = new Contrat(1, "Belge", "\uD83C\uDDE7\uD83C\uDDEA", 1);
+    Contrat contrat = new Contrat(1, "Belge", "\uD83C\uDDE7\uD83C\uDDEA", 0);
     contrats.add(contrat);
     contrat = new Contrat(2, "Petite", "P", 20);
     contrats.add(contrat);

@@ -44,15 +44,6 @@ public class EditController {
     return "edit";
   }
 
-  @PreAuthorize("hasRole('REDACTEUR')")
-  @PostMapping("/edit")
-  public String save(@RequestParam("level") int level) {
-    int clamped = Math.max(0, Math.min(2, level));
-    MessageDto dto = new MessageDto(clamped, store.get().getReunion() == null ? new Reunion() : store.get().getReunion());
-    store.set(dto);
-    broker.convertAndSend("/topic/messages", dto);
-    return "redirect:/edit";
-  }
 
   @PreAuthorize("hasRole('REDACTEUR')")
   @PostMapping("/edit/create")
@@ -102,6 +93,7 @@ public class EditController {
     MessageDto dto = new MessageDto(1, r);
     store.set(dto);
     broker.convertAndSend("/topic/messages", dto);
+
     return "redirect:/edit";
   }
 }

@@ -10,7 +10,192 @@
     <div class="mb-3">
         <h4>Ajouter une partie</h4>
     </div>
+    <div th:if="${err}" class="alert alert-danger" th:text="${err}"></div>
+    <form th:action="@{/partie}" th:object="${form}" method="post" class="row g-3">
+
+        <!-- Contrat (TOUJOURS visible) -->
+        <div class="col-12 col-md-6" id="grp-contrat">
+            <label for="idContrat" class="form-label">Contrat</label>
+            <select class="form-select" id="idContrat" th:field="*{idContrat}">
+                <!-- Premier choix imposé : Belge (id=1) -->
+                <option value="1">Belge</option>
+                <!-- Les autres contrats (éviter de réafficher id=1) -->
+                <option th:each="c : ${contrats}" th:if="${c.id != 1}"
+                        th:value="${c.id}"
+                        th:text="${c.denomination}">
+                </option>
+            </select>
+        </div>
+
+        <!-- Preneur (requis hors Belge) -->
+        <div class="col-12 col-md-6" id="grp-preneur">
+            <label for="idPreneur" class="form-label">Preneur</label>
+            <select class="form-select" id="idPreneur" th:field="*{idPreneur}">
+                <option value="0">choisir un joueur</option>
+                <option th:each="j : ${joueurs}" th:value="${j.id}" th:text="${j.nom}">Joueur</option>
+            </select>
+        </div>
+
+        <!-- Appel (caché si 4 joueurs) -->
+        <div class="col-12 col-md-6" id="grp-appel" th:if="${nbJoueurs != 4}">
+            <label for="idAppel" class="form-label">Appel</label>
+            <select class="form-select" id="idAppel" th:field="*{idAppel}">
+                <option value="0">choisir un joueur</option>
+                <option th:each="j : ${joueurs}" th:value="${j.id}" th:text="${j.nom}">Joueur</option>
+            </select>
+        </div>
+
+        <!-- Mort (caché si 4 joueurs ET si 5 joueurs) -->
+        <div class="col-12 col-md-6" id="grp-mort" th:if="${nbJoueurs != 4 and nbJoueurs != 5}">
+            <label for="idMort" class="form-label">Mort</label>
+            <select class="form-select" id="idMort" th:field="*{idMort}">
+                <option value="0">choisir un joueur</option>
+                <option th:each="j : ${joueurs}" th:value="${j.id}" th:text="${j.nom}">Joueur</option>
+            </select>
+        </div>
+
+        <!-- Contrat fait -->
+        <div class="col-12 col-md-6 form-check mt-4" id="grp-fait">
+            <input class="form-check-input" type="checkbox" id="isFait" th:field="*{isFait}">
+            <label class="form-check-label" for="isFait">Contrat réussit</label>
+        </div>
+
+        <!-- Points -->
+        <div class="col-12 col-md-6" id="grp-points">
+            <label for="point" class="form-label">Points</label>
+            <select class="form-select" id="point" th:field="*{point}">
+                <option value="0">0</option>
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="30">30</option>
+                <option value="40">40</option>
+                <option value="50">50</option>
+            </select>
+        </div>
+
+        <!-- Accordéon Annonces : idPetitAuBout (liste), isCapotRenverse, isChelem -->
+        <div class="col-12" id="grp-annonces">
+            <div class="accordion" id="annoncesAcc">
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="annoncesHead">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#annoncesCollapse" aria-expanded="false" aria-controls="annoncesCollapse">
+                            Annonces
+                        </button>
+                    </h2>
+                    <div id="annoncesCollapse" class="accordion-collapse collapse" aria-labelledby="annoncesHead"
+                         data-bs-parent="#annoncesAcc">
+                        <div class="accordion-body">
+                            <div class="row g-3">
+
+                                <!-- idPetitAuBout -->
+                                <div class="col-12 col-md-6">
+                                    <label for="idPetitAuBout" class="form-label">Petit au bout</label>
+                                    <select class="form-select" id="idPetitAuBout" th:field="*{idPetitAuBout}">
+                                        <option value="0">choisir un joueur</option>
+                                        <option th:each="j : ${joueurs}" th:value="${j.id}" th:text="${j.nom}">Joueur</option>
+                                    </select>
+                                </div>
+
+                                <!-- isCapotRenverse -->
+                                <div class="col-12 col-md-6 form-check mt-4">
+                                    <input class="form-check-input" type="checkbox" id="isCapotRenverse" th:field="*{isCapotRenverse}">
+                                    <label class="form-check-label" for="isCapotRenverse">Capot renversé</label>
+                                </div>
+
+                                <!-- isChelem -->
+                                <div class="col-12 col-md-6 form-check">
+                                    <input class="form-check-input" type="checkbox" id="isChelem" th:field="*{isChelem}">
+                                    <label class="form-check-label" for="isChelem">Chelem</label>
+                                </div>
+
+                            </div><!-- /.row -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit -->
+        <div class="col-12" id="grp-submit">
+            <button type="submit" class="btn btn-primary">Ajouter la partie</button>
+        </div>
+    </form>
 </main>
 <div th:replace="~{fragments/footer :: footer}"></div>
+<script th:inline="javascript">
+    (function () {
+        const nbJoueurs = /*[[${nbJoueurs}]]*/ 4; // fourni par le contrôleur
+
+        const q = (id) => document.getElementById(id);
+        const grp = {
+            contrat: q('grp-contrat'),
+            preneur: q('grp-preneur'),
+            appel:   q('grp-appel'),   // peut ne pas exister (th:if)
+            mort:    q('grp-mort'),    // peut ne pas exister (th:if)
+            points:  q('grp-points'),
+            fait:    q('grp-fait'),
+            annonces:q('grp-annonces'),
+            submit:  q('grp-submit')
+        };
+
+        const sel = {
+            contrat: q('idContrat'),
+            preneur: q('idPreneur'),
+            appel:   q('idAppel'),
+            mort:    q('idMort'),
+            ptBout:  q('idPetitAuBout')
+        };
+
+        function show(el, v=true){ if(!el) return; el.classList.toggle('d-none', !v); }
+        function req(input, v){ if(!input) return; if(v) input.setAttribute('required','required'); else input.removeAttribute('required'); }
+        function dis(input, v){ if(!input) return; if(v) input.setAttribute('disabled','disabled'); else input.removeAttribute('disabled'); }
+        function resetToZero(input){ if(!input) return; if (input.tagName === 'SELECT') input.value = '0'; }
+
+        function applyVisibility() {
+            const contratId = parseInt(sel.contrat.value || '0', 10);
+            const isBelge = (contratId === 1);
+
+            if (isBelge) {
+                // Ne montrer QUE Contrat + Submit
+                show(grp.contrat, true);
+                show(grp.submit, true);
+
+                show(grp.preneur, false);
+                show(grp.appel,   false);
+                show(grp.mort,    false);
+                show(grp.points,  false);
+                show(grp.fait,    false);
+                show(grp.annonces,false);
+
+                // Désactiver & réinitialiser le reste
+                [sel.preneur, sel.appel, sel.mort, sel.ptBout].forEach(e => { resetToZero(e); dis(e, true); req(e, false); });
+                ['isFait','isCapotRenverse','isChelem'].forEach(id => dis(q(id), true));
+
+            } else {
+                // Règles normales selon 4/5 joueurs
+                show(grp.preneur, true);
+                show(grp.points,  true);
+                show(grp.fait,    true);
+                show(grp.annonces,true);
+                show(grp.submit,  true);
+
+                if (grp.appel) show(grp.appel, nbJoueurs !== 4);
+                if (grp.mort)  show(grp.mort, (nbJoueurs !== 4 && nbJoueurs !== 5));
+
+                // Contraintes
+                dis(sel.preneur, false);
+                req(sel.preneur, true); // requis hors Belge
+
+                [sel.appel, sel.mort, sel.ptBout].forEach(e => dis(e, false));
+                ['isFait','isCapotRenverse','isChelem'].forEach(id => dis(q(id), false));
+            }
+        }
+
+        // Init + écoute
+        applyVisibility();
+        sel.contrat.addEventListener('change', applyVisibility);
+    })();
+</script>
 </body>
 </html>
