@@ -70,4 +70,12 @@ public class Reunion {
             .findFirst()
             .orElse(null);
   }
+
+  public Integer getNbJoueurs() {
+    return joueurs.size();
+  }
+
+  public Integer getNbParties() {
+    return parties.size();
+  }
 }
